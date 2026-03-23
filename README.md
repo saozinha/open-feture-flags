@@ -1,5 +1,3 @@
-coloque no padrão READM.md :
-
 # Poc OpenFeature
 
 ## 📦 Feature Flags Platform (Quarkus + Mongo + OpenFeature)
