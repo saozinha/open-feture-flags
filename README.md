@@ -1,68 +1,118 @@
-# open-feture-flags
+coloque no padrão READM.md :
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+# Poc OpenFeature
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## 📦 Feature Flags Platform (Quarkus + Mongo + OpenFeature)
 
-## Running the application in dev mode
+## 🧠 Propósito
 
-You can run your application in dev mode that enables live coding using:
+### Este projeto implementa uma plataforma de feature flags dinâmica, permitindo:
 
-```shell script
-./mvnw quarkus:dev
+```text
+- Ativar ou desativar funcionalidades em tempo real sem necessidade de deploy.
+- Gerenciar configurações de features de forma centralizada.
+- Ativar/desativar funcionalidades sem deploy
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+-
+### Controlar comportamento por:
 
-## Packaging and running the application
-
-The application can be packaged using:
-
-```shell script
-./mvnw package
+```text
+-  usuário
+-  rollout percentual
+-  Centralizar regras de negócio em configuração dinâmica (MongoDB)
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+## 🏗️ Arquitetura
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
 
-If you want to build an _über-jar_, execute the following command:
+### Client (Frontend / API)
 
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
+```text
+
+Quarkus Backend
+|
+OpenFeature SDK
+|
+Custom Provider (MongoFeatureProvider)
+|
+MongoDB
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+## 🚀 Tecnologias utilizadas
 
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
+```text
+Java 21
+Quarkus 3
+MongoDB
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
+## 📂 Estrutura do projeto
 
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
+```text
+src/main/java
+├── config            → Configuração OpenFeature
+├── feature           → Provider + Engine + Model
+├── resource          → APIs REST
+├── service           → Camada de uso das features
+⚙️ Configuração
+📄 application.properties
 ```
 
-You can then execute your native executable with: `./target/open-feture-flags-1.0.0-SNAPSHOT-runner`
+quarkus.mongodb.database = featuredb
+### 🐳 Executando o MongoDB com Docker
 
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
+```text
+✔ Subir container
+docker run -d -p 27017:27017 --name mongo mongo:6
+✔ Acessar o Mongo shell
+docker exec -it mongo mongosh
+✔ Criar banco e inserir uma feature
+use featuredb
 
-## Related Guides
+```shell script
+db.feature_flags.insertOne({
+name: "catalog.inventory.enabled",
+enabled: true,
+rollout: 50,
+targetUsers: ["user1"],
+defaultValue: false
+})
 
-- REST ([guide](https://quarkus.io/guides/rest)): A Jakarta REST implementation utilizing build time processing and Vert.x. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.
-- MongoDB with Panache ([guide](https://quarkus.io/guides/mongodb-panache)): Simplify your persistence code for MongoDB via the active record or the repository pattern
-- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
+```
 
-## Provided Code
+### ▶️ Executando a aplicação
 
-### REST
+```shell script
+mvn quarkus:dev
+```
 
-Easily start your REST Web Services
+### 🧪 Testando a API
 
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+```shell script
+✔ Endpoint
+
+GET /produtos?id=1
+
+✔ Exemplo com usuário
+
+curl -H "userId: user1" localhost:8080/produtos?id=1
+
+----------------------------------------
+
+✔ Resposta esperada
+
+Feature ON
+{
+"id": "1",
+"nome": "Notebook",
+"estoque": 15
+}
+
+Feature OFF
+{
+"id": "1",
+"nome": "Notebook"
+}
+```
+
