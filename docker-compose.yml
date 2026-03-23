@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: featuredb
+    volumes:
+      - ./create-collection.js:/docker-entrypoint-initdb.d/create-collection.js
+
+  backend:
+    build: .
+    container_name: feature-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+    environment:
+      QUARKUS_MONGODB_CONNECTION_STRING: mongodb://mongo:27017
+      QUARKUS_MONGODB_DATABASE: featuredb
+
+volumes:
+  mongo_data:
